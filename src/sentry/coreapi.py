@@ -693,6 +693,25 @@ class ClientApiHelper(object):
                 })
                 del data['environment']
 
+        if data.get('time_spent'):
+            try:
+                data['time_spent'] = int(data['time_spent'])
+            except (ValueError, TypeError):
+                data['errors'].append({
+                    'type': EventError.INVALID_DATA,
+                    'name': 'time_spent',
+                    'value': data['time_spent'],
+                })
+                del data['time_spent']
+            else:
+                if data['time_spent'] > 2147483647:  # Max value for the int4 column
+                    data['errors'].append({
+                        'type': EventError.VALUE_TOO_LONG,
+                        'name': 'time_spent',
+                        'value': data['time_spent'],
+                    })
+                    del data['time_spent']
+
         return data
 
     def ensure_does_not_have_ip(self, data):
