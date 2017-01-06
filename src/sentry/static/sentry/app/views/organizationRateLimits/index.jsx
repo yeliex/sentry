@@ -5,7 +5,50 @@ import IndicatorStore from '../../stores/indicatorStore';
 import OrganizationHomeContainer from '../../components/organizations/homeContainer';
 import OrganizationState from '../../mixins/organizationState';
 import {RangeField} from '../../components/forms';
-import {t, tct} from '../../locale';
+import {t} from '../../locale';
+
+const AccountLimit = React.createClass({
+  propTypes: {
+    value: React.PropTypes.number,
+    onChange: React.PropTypes.func.isRequired,
+  },
+
+  getRateLimitValues() {
+    let steps = [];
+    let i = 0;
+    while (i <= 1000000) {
+      steps.push(i);
+      if (i < 10000) {
+        i += 1000;
+      } else if (i < 100000) {
+        i += 10000;
+      } else {
+        i += 100000;
+      }
+    }
+    return steps;
+  },
+
+  render() {
+    return (
+      <div>
+        <h5>Account Limit</h5>
+
+        <RangeField
+            name="accountLimit"
+            min={0}
+            max={1000000}
+            value={this.props.value}
+            allowedValues={this.getRateLimitValues()}
+            help="The maximum number of events to accept across this entire organization."
+            placeholder="e.g. 500"
+            onChange={this.props.onChange}
+            inputClassName="col-md-3"
+            formatLabel={(value) => { return parseInt(value, 10) ? `${value.toLocaleString()} per hour` : 'No Limit'; }} />
+      </div>
+    );
+  },
+});
 
 const RateLimitEditor = React.createClass({
   propTypes: {
@@ -21,12 +64,20 @@ const RateLimitEditor = React.createClass({
       activeNav: 'rate-limits',
       currentProjectLimit: projectLimit,
       savedProjectLimit: projectLimit,
+      currentAccountLimit: 0,
+      savedAccountLimit: 0,
     };
   },
 
   onProjectLimitChange(value) {
     this.setState({
       currentProjectLimit: value,
+    });
+  },
+
+  onAccountLimitChange(value) {
+    this.setState({
+      currentAccountLimit: value,
     });
   },
 
@@ -42,7 +93,8 @@ const RateLimitEditor = React.createClass({
       this.api.request(`/organizations/${this.props.organization.slug}/`, {
         method: 'PUT',
         data: {
-          projectRateLimit: this.state.currentProjectLimit
+          projectRateLimit: this.state.currentProjectLimit,
+          accountRateLimit: this.state.currentAccountLimit,
         },
         success: (data) => {
           // TODO(dcramer): propagate this change correctly (how??)
@@ -50,6 +102,7 @@ const RateLimitEditor = React.createClass({
           this.setState({
             saving: false,
             savedProjectLimit: data.quota.projectLimit,
+            savedAccountLimit: data.quota.accountLimit,
           });
         },
         complete: () => {
@@ -60,27 +113,37 @@ const RateLimitEditor = React.createClass({
   },
 
   render() {
-    let {currentProjectLimit, savedProjectLimit, saving} = this.state;
+    let {
+      currentProjectLimit,
+      savedProjectLimit,
+      currentAccountLimit,
+      savedAccountLimit,
+      saving,
+    } = this.state;
     let maxRate = this.props.organization.quota.maxRate;
-    let canSave = savedProjectLimit === currentProjectLimit && !saving;
+    let canSave = (
+      savedProjectLimit === currentProjectLimit ||
+      savedAccountLimit === currentAccountLimit
+    ) && !saving;
 
     return (
       <form onSubmit={this.onSubmit} className="ref-rate-limit-editor">
-        <p>
-          {/* This may not translate well to all languages since maxRate may affect plural form of "events per minute" */}
-          {tct('Your organization is limited to [strong:[maxRate] events per minute]. When this rate is exceeded the system will begin discarding data until the next interval.',
-            {
-              strong: <strong/>,
-              maxRate: maxRate
-            }
-          )}
-        </p>
+        <p>Rate limits allow you to control how much data is stored for this organization. When a rate is exceeded the system will begin discarding data until the next interval.</p>
+
+        {!maxRate &&
+          <AccountLimit value={currentAccountLimit} onChange={this.onAccountLimitChange} />
+        }
+
+        <h5>Per-Project Limit</h5>
 
         <RangeField
-            label={t('Max percentage a single project may send')}
-            defaultValue={savedProjectLimit}
+            name="projectLimit"
+            defaultValue={savedProjectLimit || 100}
             onChange={this.onProjectLimitChange}
-            formatLabel={(value) => { return `${value}%`; }} />
+            step={10}
+            min={50}
+            max={100}
+            formatLabel={(value) => { return parseInt(value, 10) !== 100 ? `${value}%` : 'No Limit &mdash; 100%'; }} />
 
         <div className="help-block">{t('The maximum percentage of your quota an individual project can consume.')}</div>
 
@@ -103,8 +166,6 @@ const OrganizationRateLimits = React.createClass({
       return null;
 
     let org = this.context.organization;
-    // TODO(dcramer): defined limit is only for testing atm
-    let maxRate = org.quota.maxRate;
 
     return (
       <OrganizationHomeContainer>
@@ -113,11 +174,7 @@ const OrganizationRateLimits = React.createClass({
             <h3>{t('Rate Limits')}</h3>
           </div>
           <div className="box-content with-padding">
-            {maxRate !== 0 ?
-              <RateLimitEditor organization={org} />
-            :
-              <p className="ref-no-rate-limits">{t('There are no rate limits configured for your organization.')}</p>
-            }
+            <RateLimitEditor organization={org} />
           </div>
         </div>
       </OrganizationHomeContainer>

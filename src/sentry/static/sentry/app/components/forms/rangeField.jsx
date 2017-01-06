@@ -1,5 +1,4 @@
 import jQuery from 'jquery';
-import React from 'react';
 import ReactDOM from 'react-dom';
 
 import InputField from './inputField';
@@ -36,20 +35,12 @@ export default class RangeField extends InputField {
     // implementation
   }
 
-  getField() {
-    return (
-      <input id={this.getId()}
-          type={this.getType()}
-          className="form-control"
-          placeholder={this.props.placeholder}
-          onChange={this.onChange.bind(this)}
-          disabled={this.props.disabled}
-          ref="input"
-          min={this.props.min}
-          max={this.props.max}
-          step={this.props.step}
-          value={this.state.value} />
-    );
+  getAttributes() {
+    return {
+      min: this.props.min,
+      max: this.props.max,
+      step: this.props.step,
+    };
   }
 
   getType() {

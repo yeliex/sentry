@@ -79,6 +79,11 @@ class DetailedOrganizationSerializer(OrganizationSerializer):
             obj, attrs, user)
         context['quota'] = {
             'maxRate': quotas.get_organization_quota(obj),
+            'accountLimit': int(OrganizationOption.objects.get_value(
+                organization=obj,
+                key='sentry:account-rate-limit',
+                default=0,
+            )),
             'projectLimit': int(OrganizationOption.objects.get_value(
                 organization=obj,
                 key='sentry:project-rate-limit',
