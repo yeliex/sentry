@@ -12,7 +12,7 @@ install-python:
 install-yarn:
 	@echo "--> Installing Node dependencies"
 	@hash yarn 2> /dev/null || npm install -g yarn
-	yarn install --ignore-optional
+	NODE_ENV=development yarn install --ignore-optional
 
 install-python-tests:
 	pip install "file://`pwd`#egg=sentry[dev,tests,dsym]"
