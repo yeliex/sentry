@@ -15,7 +15,10 @@ env:
     - PIP_DISABLE_PIP_VERSION_CHECK=on
     - SENTRY_LIGHT_BUILD=1
     - SENTRY_SKIP_BACKEND_VALIDATION=1
+    - TRAVIS_NODE_VERSION=4
 install:
+  - nvm install $TRAVIS_NODE_VERSION
+  - nvm use $TRAVIS_NODE_VERSION
   - make travis-install-$TEST_SUITE
 before_script:
   - pip freeze
