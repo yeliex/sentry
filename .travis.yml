@@ -66,13 +66,13 @@ matrix:
         - mysql
         - redis-server
     - python: 2.7
-      env: TEST_SUITE=acceptance NODE_ENV=
+      env: TEST_SUITE=acceptance NODE_ENV=development
       services:
         - memcached
         - redis-server
         - postgresql
     - python: 2.7
-      env: TEST_SUITE=js NODE_ENV=
+      env: TEST_SUITE=js NODE_ENV=development
     - python: 2.7
       env: TEST_SUITE=cli
       services:
