@@ -24,7 +24,6 @@ env:
     - CXX=g++-4.8
 install:
   - nvm install $TRAVIS_NODE_VERSION
-  - nvm use $TRAVIS_NODE_VERSION
   - make travis-install-$TEST_SUITE
 before_script:
   - pip freeze
@@ -66,13 +65,13 @@ matrix:
         - mysql
         - redis-server
     - python: 2.7
-      env: TEST_SUITE=acceptance
+      env: TEST_SUITE=acceptance NODE_ENV=
       services:
         - memcached
         - redis-server
         - postgresql
     - python: 2.7
-      env: TEST_SUITE=js
+      env: TEST_SUITE=js NODE_ENV=
     - python: 2.7
       env: TEST_SUITE=cli
       services:
