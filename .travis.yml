@@ -9,6 +9,11 @@ cache:
 branches:
   only:
   - master
+addons:
+  sources:
+    - ubuntu-toolchain-r-test
+  packages:
+    - g++-4.8
 env:
   global:
     - NODE_ENV=production
@@ -16,6 +21,7 @@ env:
     - SENTRY_LIGHT_BUILD=1
     - SENTRY_SKIP_BACKEND_VALIDATION=1
     - TRAVIS_NODE_VERSION=4
+    - CXX=g++-4.8
 install:
   - nvm install $TRAVIS_NODE_VERSION
   - nvm use $TRAVIS_NODE_VERSION
